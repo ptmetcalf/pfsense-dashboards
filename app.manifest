@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "2.0.0",
+  "info": {
+    "title": "pfSense Dashboards",
+    "id": {
+      "group": null,
+      "name": "pfsense-dashboards",
+      "version": "1.0.0"
+    },
+    "author": [
+      {
+        "name": "Paul Metcalf",
+        "email": "",
+        "company": ""
+      }
+    ],
+    "releaseDate": null,
+    "description": "Splunk dashboards for pfSense firewall, DNSBL, and pfBlockerNG IP block activity, built for investigation and operational visibility.",
+    "classification": {
+      "intendedAudience": "IT Professionals",
+      "categories": ["Security, Fraud & Compliance", "IT Operations"],
+      "developmentStatus": "Production/Stable"
+    },
+    "commonInformationModels": null,
+    "license": {
+      "name": "MIT License",
+      "text": "LICENSE",
+      "uri": "https://opensource.org/licenses/MIT"
+    },
+    "privacyPolicy": {
+      "name": null,
+      "text": null,
+      "uri": null
+    },
+    "releaseNotes": {
+      "name": "README",
+      "text": "README.md",
+      "uri": ""
+    }
+  },
+  "dependencies": {
+    "TA-pfsense-plus": {
+      "version": ">=1.0.0",
+      "optional": false
+    }
+  },
+  "tasks": null,
+  "inputGroups": null,
+  "incompatibleApps": null,
+  "platformRequirements": {
+    "splunk": {
+      "Enterprise": ">=8.0.0"
+    }
+  },
+  "supportedDeployments": ["_standalone", "_distributed", "_search_head_clustering"]
+}

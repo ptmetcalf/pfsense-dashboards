@@ -1,0 +1,246 @@
+<?xml version="1.0"?>
+<dashboard version="1.1">
+  <label>pfSense DNSBL</label>
+  <description>DNSBL (pfBlockerNG) visibility for blocked domains, clients, feeds, and investigations.</description>
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="client">
+      <label>Client IP</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:dnsbl | stats count by src_ip | sort - count | head 200</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>src_ip</fieldForLabel>
+      <fieldForValue>src_ip</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="text" token="domain">
+      <label>Domain (wildcards ok)</label>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="feed">
+      <label>Feed</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:dnsbl | stats count by feed_name | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>feed_name</fieldForLabel>
+      <fieldForValue>feed_name</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="group">
+      <label>Group</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:dnsbl | stats count by dnsbl_group_name | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>dnsbl_group_name</fieldForLabel>
+      <fieldForValue>dnsbl_group_name</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="dnsbl_type">
+      <label>DNSBL Type</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:dnsbl | stats count by dnsbl_type | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>dnsbl_type</fieldForLabel>
+      <fieldForValue>dnsbl_type</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="block_type">
+      <label>Block Type</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:dnsbl | stats count by dnsbl_block_type | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>dnsbl_block_type</fieldForLabel>
+      <fieldForValue>dnsbl_block_type</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="dup_status">
+      <label>Duplicate Status</label>
+      <choice value="*">All</choice>
+      <choice value="+">+</choice>
+      <choice value="-">-</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <html>
+        <div style="text-align: center; padding: 10px;">
+          <a href="/app/pfsense-dashboards/pfsense_dnsbl?earliest=-24h@h&amp;latest=now" style="color: #0066cc; text-decoration: underline;">Clear All Filters</a>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Total Blocks</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">dnsbl events</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Domains</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats dc(blocked_domain) as domains</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">unique domains</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Clients</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats dc(src_ip) as clients</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">unique clients</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Feeds</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats dc(feed_name) as feeds</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">unique feeds</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>DNSBL Blocks Over Time</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | timechart span=5m count as blocks</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Unique Domains Over Time</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | timechart span=15m dc(blocked_domain) as unique_domains</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Domains</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top Blocked Domains</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by blocked_domain | sort - blocks | head 20</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Domain</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top Clients</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by src_ip | sort - blocks | head 20</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Client IP</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top Feeds</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by feed_name | sort - blocks | head 15</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Feed</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Clients by Blocked Domain</title>
+      <table>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by src_ip blocked_domain | sort - blocks | head 50</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="count">20</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Recent DNSBL Events (Investigation)</title>
+      <table>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:dnsbl | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), group_tok=if("$group$"="", "*", "$group$"), type_tok=if("$dnsbl_type$"="", "*", "$dnsbl_type$"), block_tok=if("$block_type$"="", "*", "$block_type$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search blocked_domain="$domain$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (group_tok="*" OR dnsbl_group_name=group_tok) AND (type_tok="*" OR dnsbl_type=type_tok) AND (block_tok="*" OR dnsbl_block_type=block_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | eval event_epoch=strptime(date_timestamp." ".date_year,"%b %e %H:%M:%S %Y") | sort 0 - event_epoch | eval event_time=strftime(event_epoch,"%F %T") | table event_time src_ip blocked_domain feed_name dnsbl_group_name dnsbl_block_type duplicate_event_status</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="count">20</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>
