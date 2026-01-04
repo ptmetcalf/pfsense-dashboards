@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.1.0...v1.1.1) (2026-01-04)
+
+
+### Bug Fixes
+
+* update release workflow to trigger on published releases and correctly set TAG_NAME ([10822e3](https://github.com/ptmetcalf/pfsense-dashboards/commit/10822e305113a6cbf92c0772f6f1597d73fcd45f))
+
 ## [1.1.0](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.1...v1.1.0) (2026-01-04)
 
 
