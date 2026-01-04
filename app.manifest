@@ -2,11 +2,11 @@
   "schemaVersion": "2.0.0",
   "info": {
     "title": "pfSense Dashboards",
-      "id": {
-        "group": null,
-        "name": "pfsense-dashboards",
-        "version": "1.0.1"
-      },
+    "id": {
+      "group": null,
+      "name": "pfsense-dashboards",
+      "version": "1.0.2"
+    },
     "author": [
       {
         "name": "Paul Metcalf",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.1...v1.0.2) (2026-01-04)
+
+
+### Bug Fixes
+
+* update regex patterns in release configuration for version extraction ([60b8e42](https://github.com/ptmetcalf/pfsense-dashboards/commit/60b8e42ed93477992470c12a1effa9e4b21a6a39))
+
 ## [1.0.1](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.1) (2026-01-04)
 
 
