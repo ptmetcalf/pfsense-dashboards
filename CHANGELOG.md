@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.1) (2026-01-04)
+
+
+### Bug Fixes
+
+* update time range from -24h to -4h in dashboards ([778b85e](https://github.com/ptmetcalf/pfsense-dashboards/commit/778b85e4044d89a4c71d9f691dabd9d7d7e56ea8))
+
 ## [1.0.2](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.1...v1.0.2) (2026-01-04)
 
 
