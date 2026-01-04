@@ -5,6 +5,13 @@
 
 ### Features
 
+* initial release ([f57af99](https://github.com/ptmetcalf/pfsense-dashboards/commit/f57af99b92744ec0f8adf0ed1c44589582cce879))
+
+## [1.0.0](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.0) (2026-01-04)
+
+
+### Features
+
 * add CI workflow for automated app inspection and packaging ([cda6df0](https://github.com/ptmetcalf/pfsense-dashboards/commit/cda6df0c1dc14058935f6e4c10edda918f979b30))
 * ensure package does not check for updates ([3ec25fe](https://github.com/ptmetcalf/pfsense-dashboards/commit/3ec25fe8d24c7b6a81632c8fc16c6360cf9f5048))
 * initial release ([8560ef6](https://github.com/ptmetcalf/pfsense-dashboards/commit/8560ef6cb46f4a83cc6b84a88d8bce106e67c42b))
