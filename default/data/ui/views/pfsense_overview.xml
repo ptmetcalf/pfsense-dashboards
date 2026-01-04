@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+<dashboard version="1.1">
+  <label>pfSense Overview</label>
+  <description>Slice and dice pfSense filterlog events.</description>
+  <init>
+    <set token="dest_port">*</set>
+  </init>
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-4h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="action">
+      <label>Action</label>
+      <choice value="*">All</choice>
+      <choice value="allowed">allowed</choice>
+      <choice value="blocked">blocked</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="direction">
+      <label>Direction</label>
+      <choice value="*">All</choice>
+      <choice value="in">in</choice>
+      <choice value="out">out</choice>
+      <choice value="inbound">inbound</choice>
+      <choice value="outbound">outbound</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="transport">
+      <label>Transport</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval transport_norm=lower(coalesce(transport,vendor_transport)) | where isnotnull(transport_norm) AND transport_norm!="-" | stats count by transport_norm | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>transport_norm</fieldForLabel>
+      <fieldForValue>transport_norm</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="rule_origin">
+      <label>Rule Origin</label>
+      <choice value="*">All</choice>
+      <choice value="user">User</choice>
+      <choice value="system">System</choice>
+      <default>*</default>
+    </input>
+    <input type="text" token="src_ip">
+      <label>Source IP</label>
+      <default>*</default>
+    </input>
+    <input type="text" token="dest_ip">
+      <label>Destination IP</label>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="app">
+      <label>App</label>
+      <search>
+        <query>| inputlookup pfsense_filter_app | stats count by app | sort app | eval app_value=app, app_label=app | append [| makeresults | eval app_value="*", app_label="All"] | eval sort_key=if(app_value="*", "0", "1") | sort sort_key app_label | fields app_label app_value</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>app_label</fieldForLabel>
+      <fieldForValue>app_value</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="text" token="dest_port">
+      <label>Destination Port</label>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <html>
+        <div style="text-align: center; padding: 10px;">
+          <a href="/app/pfsense-dashboards/pfsense_overview?earliest=-4h@h&amp;latest=now" style="color: #0066cc; text-decoration: underline;">Clear All Filters</a>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Total Events</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">firewall events</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Block Rate</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count(eval(action_norm="blocked")) as blocked, count as total | eval pct=round(blocked/total*100,2) | fields pct</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.00</option>
+        <option name="unit">%</option>
+        <option name="underLabel">of traffic blocked</option>
+        <option name="rangeColors">["0x00CC00","0xFFCC00","0xFF0000"]</option>
+        <option name="rangeValues">[10,50]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Source IPs</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats dc(src_ip_norm) as unique_ips</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">unique sources</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Top Blocked Rule</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | search action_norm="blocked" | eval rule_label=coalesce(rule_name, rule) | top limit=1 rule_label | fields rule_label</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="underLabel">most triggered block</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Traffic Volume Timeline (5-min intervals)</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | timechart span=5m count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Events</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Action (Click to drill down)</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count by action_norm | rename action_norm as action | sort - count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.fieldColors">{"allowed":"0x00CC00","blocked":"0xFF0000"}</option>
+        <drilldown>
+          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$click.value$&form.direction=$direction$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <title>Direction (Click to drill down)</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count by direction_norm | rename direction_norm as direction | sort - count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <drilldown>
+          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$click.value$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <title>Transport (Click to drill down)</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count by transport_norm | rename transport_norm as transport | sort - count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <drilldown>
+          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$direction$&form.transport=$click.value$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
+        </drilldown>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top 10 Source IPs (Click to drill down)</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | top limit=10 src_display | rename src_display as src_ip</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Source IP / Hostname</option>
+        <option name="charting.axisTitleY.text">Count</option>
+        <drilldown>
+          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$direction$&form.transport=$transport$&form.src_ip=$click.value$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top 10 Destination IPs (Click to drill down)</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | top limit=10 dest_display | rename dest_display as dest_ip</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Destination IP / Hostname</option>
+        <option name="charting.axisTitleY.text">Count</option>
+        <drilldown>
+          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$direction$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$click.value$&form.app=$app$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
+        </drilldown>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top 10 Apps (Click to drill down)</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | top limit=10 app_norm | rename app_norm as app</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Application / Service</option>
+        <option name="charting.axisTitleY.text">Count</option>
+        <drilldown>
+          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$direction$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$click.value$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top 10 Destination Ports (Click to drill down)</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | top limit=10 dest_port_norm | rename dest_port_norm as dest_port</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Port Number</option>
+        <option name="charting.axisTitleY.text">Count</option>
+        <drilldown>
+          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$direction$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=$click.value$&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
+        </drilldown>
+      </chart>
+    </panel>
+  </row>
+</dashboard>
