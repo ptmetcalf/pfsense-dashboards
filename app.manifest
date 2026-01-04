@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "2.0.0",
+  "info": {
+    "title": "pfSense Dashboards",
+    "id": {
+      "group": null,
+      "name": "pfsense-dashboards",
+      "version": "1.0.0"
+    },
+    "author": [
+      {
+        "name": "Paul Metcalf",
+        "email": null,
+        "company": null
+      }
+    ],
+    "releaseDate": "2026-01-03",
+    "description": "Dashboards for pfSense firewall, DNSBL, and pfBlockerNG IP activity.",
+    "classification": {
+      "intendedAudience": "Network and Security Operations",
+      "categories": [
+        "IT Operations",
+        "Security"
+      ],
+      "developmentStatus": "Production/Stable"
+    },
+    "commonInformationModels": {},
+    "license": {
+      "name": "MIT License",
+      "text": "./LICENSE",
+      "uri": "https://opensource.org/licenses/MIT"
+    },
+    "privacyPolicy": {
+      "name": "Privacy Policy",
+      "text": null,
+      "uri": null
+    },
+    "releaseNotes": {
+      "name": "README",
+      "text": "./README.md",
+      "uri": null
+    }
+  },
+  "dependencies": {
+    "ta-pfsense-plus": {
+      "version": ">=1.0.0"
+    }
+  },
+  "tasks": [],
+  "inputGroups": {},
+  "incompatibleApps": {},
+  "platformRequirements": {
+    "splunk": {
+      "Enterprise": "*"
+    }
+  },
+  "supportedDeployments": [
+    "_standalone",
+    "_distributed",
+    "_search_head_clustering"
+  ],
+  "targetWorkloads": [
+    "_search_heads"
+  ]
+}

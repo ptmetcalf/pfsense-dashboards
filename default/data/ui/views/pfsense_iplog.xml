@@ -1,0 +1,255 @@
+<?xml version="1.0"?>
+<dashboard version="1.1">
+  <label>pfSense IP Block</label>
+  <description>pfBlockerNG IP block visibility and investigations.</description>
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="client">
+      <label>Client IP</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:iplog | stats count by src_ip | sort - count | head 200</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>src_ip</fieldForLabel>
+      <fieldForValue>src_ip</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="text" token="dest_ip">
+      <label>Destination IP</label>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="feed">
+      <label>Feed</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:iplog | stats count by feed_name | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>feed_name</fieldForLabel>
+      <fieldForValue>feed_name</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="alias">
+      <label>Alias</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:iplog | stats count by aliasname | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>aliasname</fieldForLabel>
+      <fieldForValue>aliasname</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="direction">
+      <label>Direction</label>
+      <choice value="*">All</choice>
+      <choice value="in">in</choice>
+      <choice value="out">out</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="protocol">
+      <label>Protocol</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:iplog | stats count by protocol | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>protocol</fieldForLabel>
+      <fieldForValue>protocol</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="geo">
+      <label>Country</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:iplog | stats count by geoip | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>geoip</fieldForLabel>
+      <fieldForValue>geoip</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="dup_status">
+      <label>Duplicate Status</label>
+      <choice value="*">All</choice>
+      <choice value="+">+</choice>
+      <choice value="-">-</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <html>
+        <div style="text-align: center; padding: 10px;">
+          <a href="/app/pfsense-dashboards/pfsense_iplog?earliest=-24h@h&amp;latest=now" style="color: #0066cc; text-decoration: underline;">Clear All Filters</a>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Total IP Blocks</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">ip block events</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Clients</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats dc(src_ip) as clients</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">unique clients</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Destinations</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats dc(dst_ip) as dest_ips</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">unique dest IPs</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Feeds</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats dc(feed_name) as feeds</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">unique feeds</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>IP Blocks Over Time</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | timechart span=5m count as blocks</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Blocks by Country</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by geoip | sort - blocks | head 15</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Country</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top Blocked Destinations</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by dst_ip | sort - blocks | head 20</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Destination IP</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top Clients</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by src_ip | sort - blocks | head 20</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Client IP</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top Ports</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by dst_port | sort - blocks | head 15</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Destination Port</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top Feeds</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | stats count as blocks by feed_name | sort - blocks | head 15</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Feed</option>
+        <option name="charting.axisTitleY.text">Blocks</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Recent IP Block Events (Investigation)</title>
+      <table>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:iplog | eval client_tok=if("$client$"="", "*", "$client$"), feed_tok=if("$feed$"="", "*", "$feed$"), alias_tok=if("$alias$"="", "*", "$alias$"), dir_tok=if("$direction$"="", "*", "$direction$"), proto_tok=if("$protocol$"="", "*", "$protocol$"), geo_tok=if("$geo$"="", "*", "$geo$"), dup_tok=if("$dup_status$"="", "*", "$dup_status$") | search dst_ip="$dest_ip$" | where (client_tok="*" OR src_ip=client_tok) AND (feed_tok="*" OR feed_name=feed_tok) AND (alias_tok="*" OR aliasname=alias_tok) AND (dir_tok="*" OR direction=dir_tok) AND (proto_tok="*" OR protocol=proto_tok) AND (geo_tok="*" OR geoip=geo_tok) AND (dup_tok="*" OR duplicate_event_status=dup_tok) | eval event_epoch=coalesce(strptime(date_timestamp." ".date_year,"%b %e %H:%M:%S %Y"), _time) | sort 0 - event_epoch | eval event_time=strftime(event_epoch,"%F %T") | table event_time src_ip dst_ip dst_port protocol geoip feed_name aliasname resolved_hostname duplicate_event_status</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="count">20</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>
