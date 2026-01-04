@@ -1,0 +1,31 @@
+[default]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[views/pfsense_overview]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[views/pfsense_dnsbl]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[views/pfsense_iplog]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[macros/pfsense_normalize]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[macros/pfsense_index]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[macros/pfsense_base_filter]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[macros/pfsense_token_filter]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
