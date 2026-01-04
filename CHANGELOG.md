@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.3](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.2...v1.0.3) (2026-01-04)
+
+
+### Bug Fixes
+
+* trigger release-please ([b6839d3](https://github.com/ptmetcalf/pfsense-dashboards/commit/b6839d324f353ab309c34dc3de2d69c302fd7bdf))
+* update app.conf regex for release-please ([58aaefd](https://github.com/ptmetcalf/pfsense-dashboards/commit/58aaefda53de650387f159682000948bfbd5659f))
+
 ## [1.0.2](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.1...v1.0.2) (2026-01-04)
 
 
