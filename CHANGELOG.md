@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.1...v1.1.0) (2026-01-04)
+
+
+### Features
+
+* enhance release workflow to sync app.conf version automatically ([db41efd](https://github.com/ptmetcalf/pfsense-dashboards/commit/db41efdddb7fbc639d5187c87337428a7e20fe36))
+
 ## [1.0.1](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.1) (2026-01-04)
 
 
