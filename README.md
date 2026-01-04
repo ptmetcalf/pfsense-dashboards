@@ -64,13 +64,23 @@ See `CONTRIBUTING.md` for AppInspect and packaging steps.
 
 ## Screenshots
 
-Screenshots are available in `appserver/static/screenshots/`:
-- `01-pfsense-overview.png` - Main overview dashboard with filters and statistics
-- `02-pfsense-detail.png` - Detailed event view with full field visibility
-- `03-pfsense-dnsbl.png` - DNSBL blocked domains analysis
-- `04-pfsense-iplog.png` - pfBlockerNG IP block events
-- `05-pfsense-insights.png` - Statistical trends and insights
-- `06-pfsense-host-investigator.png` - Host-centric investigation view
+Main overview dashboard with filters and statistics.
+![pfSense Overview](appserver/static/screenshots/01-pfsense-overview.png)
+
+Detailed event view with full field visibility.
+![pfSense Detail](appserver/static/screenshots/02-pfsense-detail.png)
+
+DNSBL blocked domains analysis.
+![pfSense DNSBL](appserver/static/screenshots/03-pfsense-dnsbl.png)
+
+pfBlockerNG IP block events.
+![pfSense IP Log](appserver/static/screenshots/04-pfsense-iplog.png)
+
+Statistical trends and insights.
+![pfSense Insights](appserver/static/screenshots/05-pfsense-insights.png)
+
+Host-centric investigation view.
+![pfSense Host Investigator](appserver/static/screenshots/06-pfsense-host-investigator.png)
 
 All sensitive data (IPs, hostnames, domains) has been sanitized for public distribution.
 
