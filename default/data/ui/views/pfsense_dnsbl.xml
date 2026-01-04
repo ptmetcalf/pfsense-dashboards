@@ -6,7 +6,7 @@
     <input type="time" token="time">
       <label>Time Range</label>
       <default>
-        <earliest>-24h@h</earliest>
+        <earliest>-4h@h</earliest>
         <latest>now</latest>
       </default>
     </input>
@@ -87,7 +87,7 @@
     <panel>
       <html>
         <div style="text-align: center; padding: 10px;">
-          <a href="/app/pfsense-dashboards/pfsense_dnsbl?earliest=-24h@h&amp;latest=now" style="color: #0066cc; text-decoration: underline;">Clear All Filters</a>
+          <a href="/app/pfsense-dashboards/pfsense_dnsbl?earliest=-4h@h&amp;latest=now" style="color: #0066cc; text-decoration: underline;">Clear All Filters</a>
         </div>
       </html>
     </panel>
