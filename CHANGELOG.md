@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.1) (2026-01-04)
+
+
+### Bug Fixes
+
+* remove redundant APP_NAME variable assignment in release workflow ([5a702ba](https://github.com/ptmetcalf/pfsense-dashboards/commit/5a702ba7e838a13ff79dcfffc353c58a63ce0951))
+
 ## [1.0.0](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.0) (2026-01-04)
 
 
