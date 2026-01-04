@@ -19,14 +19,18 @@ jobs:
         run: |
           APP_NAME="pfsense-dashboards"
           TAR_NAME="${APP_NAME}-${GITHUB_REF_NAME}.tgz"
+          TAR_PATH="${RUNNER_TEMP}/${TAR_NAME}"
           tar \
             --exclude="pfsense-dashboards/.git" \
             --exclude="pfsense-dashboards/.github" \
             --exclude="pfsense-dashboards/.gitignore" \
             --exclude="pfsense-dashboards/.claude" \
             --exclude="pfsense-dashboards/.DS_Store" \
-            -czf "${TAR_NAME}" -C .. pfsense-dashboards
+            --exclude="pfsense-dashboards/.venv-appinspect" \
+            --exclude="pfsense-dashboards/dist" \
+            -czf "${TAR_PATH}" -C .. pfsense-dashboards
           echo "TAR_NAME=${TAR_NAME}" >> "$GITHUB_ENV"
+          echo "TAR_PATH=${TAR_PATH}" >> "$GITHUB_ENV"
           echo "APP_NAME=${APP_NAME}" >> "$GITHUB_ENV"
 
       - name: Set up Python
@@ -41,7 +45,7 @@ jobs:
 
       - name: Run AppInspect
         run: |
-          splunk-appinspect inspect "${TAR_NAME}" \
+          splunk-appinspect inspect "${TAR_PATH}" \
             --mode precert \
             --data-format json \
             --output-file "${APP_NAME}-appinspect.json" \
@@ -56,4 +60,4 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.TAR_NAME }}
+          files: ${{ env.TAR_PATH }}
