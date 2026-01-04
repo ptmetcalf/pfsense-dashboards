@@ -38,6 +38,37 @@ definition = index=your_pfsense_index
 * DNS queries: `sourcetype=pfsense:unbound`
 * IDS/IPS: `sourcetype=pfsense:snort` or `sourcetype=pfsense:suricata`
 
+### Lookup Enrichment (Optional)
+
+You can enrich dashboards with lookups generated from your pfSense instance
+(rules, interfaces, DNS hosts). The TA includes helper scripts:
+
+* `tools/splunk-pfsense-rule-lookup.sh` -> `pfsense_filter_rule_map.csv`
+* `tools/splunk-pfsense-interface-lookup.sh` -> `pfsense_interface_map.csv`
+* `tools/splunk-pfsense-dns-lookup.sh` -> `pfsense_dns_hosts.csv`
+
+These CSVs should live in a local app or local overrides so app upgrades
+don't overwrite your custom data.
+
+Recommended (clean separation):
+1. Create a small local app, e.g. `$SPLUNK_HOME/etc/apps/pfsense-local/`
+2. Put CSVs in `$SPLUNK_HOME/etc/apps/pfsense-local/lookups/`
+3. Add `local/lookup_table_files.conf` in that app with the same lookup names:
+```
+[pfsense_filter_rule_map]
+filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_filter_rule_map.csv
+
+[pfsense_interface_map]
+filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_interface_map.csv
+
+[pfsense_dns_hosts]
+filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_dns_hosts.csv
+```
+
+Simple setups can also override directly in:
+`$SPLUNK_HOME/etc/apps/pfsense-dashboards/local/lookup_table_files.conf`
+using the same lookup names. Splunk will prefer local overrides over defaults.
+
 ## Dashboards
 
 ### pfSense Overview
