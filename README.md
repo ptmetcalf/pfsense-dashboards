@@ -40,30 +40,9 @@ definition = index=your_pfsense_index
 
 ### Lookup Enrichment (Optional)
 
-You can enrich dashboards with lookups generated from your pfSense instance
-(rules, interfaces, DNS hosts). The TA includes helper scripts:
-
-* `tools/splunk-pfsense-rule-lookup.sh` -> `pfsense_filter_rule_map.csv`
-* `tools/splunk-pfsense-interface-lookup.sh` -> `pfsense_interface_map.csv`
-* `tools/splunk-pfsense-dns-lookup.sh` -> `pfsense_dns_hosts.csv`
-
-These CSVs should live in a local app or local overrides so app upgrades
-don't overwrite your custom data. If you store the CSVs in
-`$SPLUNK_HOME/etc/system/local/lookups/`, add the matching lookup
-definitions in `$SPLUNK_HOME/etc/system/local/lookup_table_files.conf` so
-Splunk prefers your local files over the app defaults.
-
-Example `lookup_table_files.conf`:
-```
-[pfsense_filter_rule_map]
-filename = $SPLUNK_HOME/etc/system/local/lookups/pfsense_filter_rule_map.csv
-
-[pfsense_interface_map]
-filename = $SPLUNK_HOME/etc/system/local/lookups/pfsense_interface_map.csv
-
-[pfsense_dns_hosts]
-filename = $SPLUNK_HOME/etc/system/local/lookups/pfsense_dns_hosts.csv
-```
+The dashboards can be enriched with optional pfSense lookups (rules, interfaces,
+DNS hosts). See the TA-pfsense Plus README for the scripts and setup details:
+https://github.com/ptmetcalf/ta-pfsense-plus/blob/main/README.md
 
 Recommended (clean separation):
 1. Create a small local app, e.g. `$SPLUNK_HOME/etc/apps/pfsense-local/`
