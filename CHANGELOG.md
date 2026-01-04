@@ -5,6 +5,15 @@
 
 ### Features
 
+* initial release ([a02dae6](https://github.com/ptmetcalf/pfsense-dashboards/commit/a02dae63d8d2166652a84359352ff708b11b36ae))
+* update release process to use GitHub CLI for asset uploads ([53d3339](https://github.com/ptmetcalf/pfsense-dashboards/commit/53d3339a5f6e592056b7e0deb871c5deb112bc43))
+* update release workflow to trigger on workflow_run and remove tag push event ([20618dc](https://github.com/ptmetcalf/pfsense-dashboards/commit/20618dc4984c9d3dbdc9205404b3792309d98776))
+
+## [1.0.0](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.0) (2026-01-04)
+
+
+### Features
+
 * add CI workflow for automated app inspection and packaging ([cda6df0](https://github.com/ptmetcalf/pfsense-dashboards/commit/cda6df0c1dc14058935f6e4c10edda918f979b30))
 * ensure package does not check for updates ([3ec25fe](https://github.com/ptmetcalf/pfsense-dashboards/commit/3ec25fe8d24c7b6a81632c8fc16c6360cf9f5048))
 * initial release ([8560ef6](https://github.com/ptmetcalf/pfsense-dashboards/commit/8560ef6cb46f4a83cc6b84a88d8bce106e67c42b))
