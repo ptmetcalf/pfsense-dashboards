@@ -17,7 +17,7 @@ activity, built for investigation and operational visibility.
 
 ### Index Configuration
 
-By default, dashboards search across all indexes (`index=*`). To limit searches to a specific index:
+By default, dashboards search `index=pfsense`. To use a different index:
 
 1. Create `$SPLUNK_HOME/etc/apps/pfsense-dashboards/local/macros.conf`
 2. Add the following:
@@ -36,7 +36,7 @@ definition = index=your_pfsense_index
 * IP block data: `sourcetype=pfsense:iplog`
 * VPN logs: `sourcetype=pfsense:openvpn`
 * DNS queries: `sourcetype=pfsense:unbound`
-* IDS/IPS: `sourcetype=pfsense:snort` or `sourcetype=pfsense:suricata`
+* IDS/IPS: `sourcetype=pfsense:suricata`
 
 ### Lookup Enrichment (Optional)
 
@@ -63,6 +63,11 @@ Simple setups can also override directly in:
 `$SPLUNK_HOME/etc/apps/pfsense-dashboards/local/lookup_table_files.conf`
 using the same lookup names. Splunk will prefer local overrides over defaults.
 
+Optional interface/zone/gateway/port enrichment lookups live in the TA app. See
+`docs/panels.md` and use
+`$SPLUNK_HOME/etc/apps/ta-pfsense-plus/tools/pfsense-lookups.py enrichment`
+to generate instance-specific CSVs from a pfSense `config.xml` dump.
+
 ## Dashboards
 
 ### pfSense Overview
@@ -74,11 +79,11 @@ Detailed view of individual firewall events with full field visibility.
 ### pfSense DNSBL
 Dashboard for pfBlockerNG DNS blacklist activity, showing blocked domains, source IPs, and feed information.
 
+### pfSense Suricata
+Suricata IDS dashboard for alerts, signatures, and top talkers.
+
 ### pfSense IP Log
 Dashboard for pfBlockerNG IP block events, tracking blocked IPs by feed and geolocation.
-
-### pfSense Insights
-Statistical analysis and trends of firewall activity over time.
 
 ### pfSense Host
 Host-centric view for investigating specific source or destination hosts.
@@ -102,7 +107,6 @@ pfBlockerNG IP block events.
 ![pfSense IP Log](appserver/static/screenshots/04-pfsense-iplog.png)
 
 Statistical trends and insights.
-![pfSense Insights](appserver/static/screenshots/05-pfsense-insights.png)
 
 Host-centric investigation view.
 ![pfSense Host Investigator](appserver/static/screenshots/06-pfsense-host-investigator.png)

@@ -3,7 +3,7 @@
   <view name="pfsense_overview" />
   <view name="pfsense_detail" />
   <view name="pfsense_dnsbl" />
+  <view name="pfsense_suricata" />
   <view name="pfsense_iplog" />
-  <view name="pfsense_insights" />
   <view name="pfsense_host" />
 </nav>
