@@ -4,37 +4,15 @@
 
 ### Features
 
-* add `pfsense_ip_seen` summary lookup and scheduled search for new-source panels
-* standardize filterlog normalization with the `pfsense_filterlog_base` macro
-* clarify traffic timeline panel naming to reflect logged events
+* add Suricata dashboard, saved searches, and KV store baseline collections
+* refactor dashboards (overview, DNSBL, IP log, host, detail) with updated panels and layout
+* add filterlog normalization macros/transforms and document panel sources
 
 ### Bug Fixes
 
-* remove legacy known-sources lookups and align panels with new summary lookups
-* document scheduled summary lookups and enrichment flow
-* drop the Start Here (Top Signals) panel block
-
-## [1.1.1](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.1.0...v1.1.1) (2026-01-06)
-
-
-### Bug Fixes
-
-* sync app.conf version in release ([15bdc26](https://github.com/ptmetcalf/pfsense-dashboards/commit/15bdc26527a4b430f4a278775f65eea181a91069))
-* update time range from -24h to -4h in dashboards ([778b85e](https://github.com/ptmetcalf/pfsense-dashboards/commit/778b85e4044d89a4c71d9f691dabd9d7d7e56ea8))
-
-## [1.1.0](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.1...v1.1.0) (2026-01-04)
-
-
-### Features
-
-* enhance release workflow to sync app.conf version automatically ([db41efd](https://github.com/ptmetcalf/pfsense-dashboards/commit/db41efdddb7fbc639d5187c87337428a7e20fe36))
-
-## [1.0.2](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.1...v1.0.2) (2026-01-04)
-
-
-### Bug Fixes
-
-* update regex patterns in release configuration for version extraction ([60b8e42](https://github.com/ptmetcalf/pfsense-dashboards/commit/60b8e42ed93477992470c12a1effa9e4b21a6a39))
+* fix `rule_origin_tok` evaluation in `pfsense_filterlog_base` macro
+* reduce result counts for external blocked sources and internal talkers to improve performance
+* remove deprecated insights dashboard assets
 
 ## [1.0.1](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.1) (2026-01-04)
 
