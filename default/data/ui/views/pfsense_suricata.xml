@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+<dashboard version="1.1">
+  <label>pfSense Suricata</label>
+  <description>Suricata IDS visibility for alerts, signatures, and top talkers.</description>
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-4h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="action">
+      <label>Action</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")) | stats count by action_norm | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>action_norm</fieldForLabel>
+      <fieldForValue>action_norm</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="severity">
+      <label>Severity</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:suricata | eval severity_norm=coalesce(severity, tostring(priority)) | stats count by severity_norm | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>severity_norm</fieldForLabel>
+      <fieldForValue>severity_norm</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="classification">
+      <label>Classification</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>`pfsense_index` sourcetype=pfsense:suricata | eval class_norm=coalesce(classification, "unknown") | stats count by class_norm | sort - count</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <fieldForLabel>class_norm</fieldForLabel>
+      <fieldForValue>class_norm</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="text" token="src_ip">
+      <label>Source IP</label>
+      <default>*</default>
+    </input>
+    <input type="text" token="dest_ip">
+      <label>Destination IP</label>
+      <default>*</default>
+    </input>
+    <input type="text" token="signature">
+      <label>Signature (wildcards ok)</label>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <html>
+        <div style="text-align: center; padding: 10px;">
+          <a href="/app/pfsense-dashboards/pfsense_suricata?earliest=-4h@h&amp;latest=now" style="color: #0066cc; text-decoration: underline;">Clear All Filters</a>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Total Alerts</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">suricata alerts</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Alerts per Minute</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | addinfo | stats count as alerts max(info_min_time) as info_min_time max(info_max_time) as info_max_time | eval duration_minutes=(info_max_time-info_min_time)/60 | eval alerts_per_min=if(duration_minutes>0, round(alerts/duration_minutes,2), 0) | fields alerts_per_min</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">2</option>
+        <option name="underLabel">avg alerts/min</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Source IPs</title>
+      <single>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | stats dc(src_ip_norm) as unique_sources</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="underLabel">sources</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Alerts Over Time</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | timechart span=5m count by action_norm</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Alerts</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top Signatures</title>
+      <table>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | stats count by signature_norm | sort - count | head 20 | rename signature_norm as signature</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="count">20</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Top Source IPs</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | stats count by src_ip_norm | sort - count | head 10 | rename src_ip_norm as src_ip</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top Destination IPs</title>
+      <chart>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | stats count by dest_ip_norm | sort - count | head 10 | rename dest_ip_norm as dest_ip</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top Classifications</title>
+      <table>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | stats count by class_norm severity_norm | sort - count | head 20 | rename class_norm as classification severity_norm as severity</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="count">20</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Raw Events (most recent 10, up to 100 total)</title>
+      <table>
+        <search>
+          <query>`pfsense_index` sourcetype=pfsense:suricata | eval action_norm=lower(coalesce(action, vendor_action, "alert")), severity_norm=coalesce(severity, tostring(priority)), class_norm=coalesce(classification, "unknown"), src_ip_norm=coalesce(src_ip, src), dest_ip_norm=coalesce(dest_ip, dest), signature_norm=coalesce(signature, message), transport_norm=coalesce(transport, proto) | eval action_tok=if("$action$"="", "*", "$action$"), severity_tok=if("$severity$"="", "*", "$severity$"), class_tok=if("$classification$"="", "*", "$classification$") | search src_ip_norm="$src_ip$" dest_ip_norm="$dest_ip$" signature_norm="$signature$" | where (action_tok="*" OR action_norm=lower(action_tok)) AND (severity_tok="*" OR severity_norm=severity_tok) AND (class_tok="*" OR class_norm=class_tok) | eval src_ip=src_ip_norm, dest_ip=dest_ip_norm, signature=signature_norm, action=action_norm, severity=severity_norm, classification=class_norm, transport=transport_norm | sort - _time | head 100 | table _time action severity classification transport src_ip src_port dest_ip dest_port signature</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

@@ -17,7 +17,7 @@ activity, built for investigation and operational visibility.
 
 ### Index Configuration
 
-By default, dashboards search across all indexes (`index=*`). To limit searches to a specific index:
+By default, dashboards search `index=pfsense`. To use a different index:
 
 1. Create `$SPLUNK_HOME/etc/apps/pfsense-dashboards/local/macros.conf`
 2. Add the following:
@@ -36,32 +36,42 @@ definition = index=your_pfsense_index
 * IP block data: `sourcetype=pfsense:iplog`
 * VPN logs: `sourcetype=pfsense:openvpn`
 * DNS queries: `sourcetype=pfsense:unbound`
-* IDS/IPS: `sourcetype=pfsense:snort` or `sourcetype=pfsense:suricata`
+* IDS/IPS: `sourcetype=pfsense:suricata`
 
 ### Lookup Enrichment (Optional)
 
 The dashboards can be enriched with optional pfSense lookups (rules, interfaces,
-DNS hosts). See the TA-pfsense Plus README for the scripts and setup details:
-https://github.com/ptmetcalf/ta-pfsense-plus/blob/main/README.md
+DNS hosts). These are backed by KV store collections in the TA app, so empty
+collections are safe and upgrades do not wipe enrichment data.
 
-Recommended (clean separation):
-1. Create a small local app, e.g. `$SPLUNK_HOME/etc/apps/pfsense-local/`
-2. Put CSVs in `$SPLUNK_HOME/etc/apps/pfsense-local/lookups/`
-3. Add `local/lookup_table_files.conf` in that app with the same lookup names:
-```
-[pfsense_filter_rule_map]
-filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_filter_rule_map.csv
+1. Generate SPL commands using `ta-pfsense-plus/tools/pfsense-lookups.py` from the repo
+   (the helper script is not intended to be run inside the installed Splunk app).
+2. Paste the generated SPL into Splunk Search to populate the KV store
+   collections (see the TA README for details).
 
-[pfsense_interface_map]
-filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_interface_map.csv
+Optional DNS host, interface map, rule map, and zone subnet enrichment lookups live in the TA app. Use
+the lookup generator from the repo (for example, `tools/pfsense-lookups.py enrichment`) to produce
+instance-specific SPL from a pfSense `config.xml` dump.
 
-[pfsense_dns_hosts]
-filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_dns_hosts.csv
-```
+### Summary Lookups (Auto-populated)
 
-Simple setups can also override directly in:
-`$SPLUNK_HOME/etc/apps/pfsense-dashboards/local/lookup_table_files.conf`
-using the same lookup names. Splunk will prefer local overrides over defaults.
+Several panels use summary lookups that are populated by scheduled searches in
+this app. These searches are disabled by default; enable them in
+**Settings > Searches, Reports, and Alerts** to populate the KV collections.
+They run daily, so after install allow a day or run them manually. If you do not
+enable or run them, panels that depend on these lookups will show limited or
+empty data. When running ad-hoc, use the lookup name (for example
+`outputlookup pfsense_ip_seen`) to ensure the KV store collection in this app is
+updated:
+
+* pfSense - Baseline Block Rate (7d)
+* pfSense - Baseline Unique Sources Per Hour (7d)
+* pfSense - IP Seen (First/Last)
+* pfSense - Known DNSBL Domains (Prev 7d, Exclude Last 24h)
+* pfSense - Known IP Block Destinations (Prev 7d, Exclude Last 24h)
+
+The IP-seen job scans the last 30 days (`dispatch.earliest_time = -30d@d`) to
+avoid long runtimes on large datasets.
 
 ## Dashboards
 
@@ -74,11 +84,11 @@ Detailed view of individual firewall events with full field visibility.
 ### pfSense DNSBL
 Dashboard for pfBlockerNG DNS blacklist activity, showing blocked domains, source IPs, and feed information.
 
+### pfSense Suricata
+Suricata IDS dashboard for alerts, signatures, and top talkers.
+
 ### pfSense IP Log
 Dashboard for pfBlockerNG IP block events, tracking blocked IPs by feed and geolocation.
-
-### pfSense Insights
-Statistical analysis and trends of firewall activity over time.
 
 ### pfSense Host
 Host-centric view for investigating specific source or destination hosts.
@@ -102,7 +112,6 @@ pfBlockerNG IP block events.
 ![pfSense IP Log](appserver/static/screenshots/04-pfsense-iplog.png)
 
 Statistical trends and insights.
-![pfSense Insights](appserver/static/screenshots/05-pfsense-insights.png)
 
 Host-centric investigation view.
 ![pfSense Host Investigator](appserver/static/screenshots/06-pfsense-host-investigator.png)

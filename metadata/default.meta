@@ -29,3 +29,31 @@ export = system
 [macros/pfsense_token_filter]
 access = read : [ * ], write : [ admin, sc_admin ]
 export = system
+
+[macros/pfsense_filterlog_base]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[transforms]
+export = system
+
+[lookups]
+export = system
+
+[collections]
+export = system
+
+[collections/pfsense_baseline_block_rate]
+export = system
+
+[collections/pfsense_baseline_unique_sources_hourly]
+export = system
+
+[collections/pfsense_ip_seen]
+export = system
+
+[collections/pfsense_known_dnsbl_domains_prev7d]
+export = system
+
+[collections/pfsense_known_iplog_dests_prev7d]
+export = system

@@ -13,11 +13,17 @@
         <latest>now</latest>
       </default>
     </input>
+    <input type="dropdown" token="show_ipv6">
+      <label>IPv6</label>
+      <choice value="0">Hide IPv6</choice>
+      <choice value="1">Show IPv6</choice>
+      <default>0</default>
+    </input>
     <input type="dropdown" token="action">
       <label>Action</label>
       <choice value="*">All</choice>
-      <choice value="allowed">allowed</choice>
-      <choice value="blocked">blocked</choice>
+      <choice value="allowed">allow</choice>
+      <choice value="blocked">block</choice>
       <default>*</default>
     </input>
     <input type="dropdown" token="direction">
@@ -59,7 +65,7 @@
     <input type="dropdown" token="app">
       <label>App</label>
       <search>
-        <query>| inputlookup pfsense_filter_app | stats count by app | sort app | eval app_value=app, app_label=app | append [| makeresults | eval app_value="*", app_label="All"] | eval sort_key=if(app_value="*", "0", "1") | sort sort_key app_label | fields app_label app_value</query>
+        <query>| inputlookup pfsense_application_protocols | stats count by app | sort app | eval app_value=lower(app), app_label=upper(app) | append [| makeresults | eval app_value="*", app_label="All"] | eval sort_key=if(app_value="*", "0", "1") | sort sort_key app_label | fields app_label app_value</query>
         <earliest>$time.earliest$</earliest>
         <latest>$time.latest$</latest>
       </search>
@@ -82,13 +88,12 @@
       </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>Total Events</title>
       <single>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | stats count</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
@@ -101,7 +106,7 @@
       <title>Block Rate</title>
       <single>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count(eval(action_norm="blocked")) as blocked, count as total | eval pct=round(blocked/total*100,2) | fields pct</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | stats count(eval(action_norm="blocked")) as blocked, count as total | eval pct=round(blocked/total*100,2) | fields pct</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
@@ -118,7 +123,7 @@
       <title>Unique Source IPs</title>
       <single>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats dc(src_ip_norm) as unique_ips</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | stats dc(src_ip_norm) as unique_ips</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
@@ -131,7 +136,7 @@
       <title>Top Blocked Rule</title>
       <single>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | search action_norm="blocked" | eval rule_label=coalesce(rule_name, rule) | top limit=1 rule_label | fields rule_label</query>
+          <query>`pfsense_filterlog_base` | search action_norm="blocked" | eval rule_label=coalesce(rule_name, rule) | top limit=1 rule_label | fields rule_label</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
@@ -140,13 +145,49 @@
       </single>
     </panel>
   </row>
+  <row>
+    <panel>
+      <title>Block Rate vs 7d Avg</title>
+      <single>
+        <search>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | stats count(eval(action_norm="blocked")) as blocked, count as total | eval current_pct=if(total>0, blocked/total*100, 0) | append [| inputlookup pfsense_baseline_block_rate | fields baseline_pct ] | stats max(current_pct) as current_pct max(baseline_pct) as baseline_pct | eval baseline_pct=coalesce(baseline_pct,0) | eval delta_pct=if(baseline_pct>0, round(((current_pct-baseline_pct)/baseline_pct)*100,1), 0) | fields delta_pct</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.0</option>
+        <option name="unit">%</option>
+        <option name="underLabel">delta vs 7d average (summary)</option>
+        <option name="rangeColors">["0x00CC00","0xFFCC00","0xFF0000"]</option>
+        <option name="rangeValues">[-10,10]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Sources vs 7d Avg</title>
+      <single>
+        <search>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | addinfo | stats dc(src_ip_norm) as current_unique max(info_min_time) as info_min_time max(info_max_time) as info_max_time | eval duration_hours=(info_max_time-info_min_time)/3600 | eval current_per_hour=if(duration_hours>0, current_unique/duration_hours, 0) | append [| inputlookup pfsense_baseline_unique_sources_hourly | fields baseline_per_hour ] | stats max(current_per_hour) as current_per_hour max(baseline_per_hour) as baseline_per_hour | eval baseline_per_hour=coalesce(baseline_per_hour,0) | eval delta_pct=if(baseline_per_hour>0, round(((current_per_hour-baseline_per_hour)/baseline_per_hour)*100,1), 0) | fields delta_pct</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.0</option>
+        <option name="unit">%</option>
+        <option name="underLabel">delta vs 7d avg per hour (summary)</option>
+        <option name="rangeColors">["0x00CC00","0xFFCC00","0xFF0000"]</option>
+        <option name="rangeValues">[-10,10]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
 
   <row>
     <panel>
-      <title>Traffic Volume Timeline (5-min intervals)</title>
+      <title>Logged Traffic Volume Timeline (5-min intervals)</title>
       <chart>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | timechart span=5m count</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | timechart span=5m count</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
@@ -158,55 +199,76 @@
   </row>
   <row>
     <panel>
-      <title>Action (Click to drill down)</title>
+      <title>Allowed vs Blocked Over Time</title>
       <chart>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count by action_norm | rename action_norm as action | sort - count</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | where isnotnull(action_norm) AND action_norm!="" | timechart span=5m count by action_norm usenull=false useother=false | untable _time action_norm count | eventstats sum(count) as total by _time | eval percent=round((count/total)*100,1) | fields - total | xyseries _time action_norm percent</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
-        <option name="charting.chart">pie</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Percent of Events</option>
         <option name="charting.fieldColors">{"allowed":"0x00CC00","blocked":"0xFF0000"}</option>
-        <drilldown>
-          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$click.value$&form.direction=$direction$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
-        </drilldown>
       </chart>
     </panel>
     <panel>
-      <title>Direction (Click to drill down)</title>
+      <title>Direction Over Time</title>
       <chart>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count by direction_norm | rename direction_norm as direction | sort - count</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | where isnotnull(direction_norm) AND direction_norm!="" | timechart span=5m count by direction_norm usenull=false useother=false | untable _time direction_norm count | eventstats sum(count) as total by _time | eval percent=round((count/total)*100,1) | fields - total | xyseries _time direction_norm percent</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
-        <option name="charting.chart">pie</option>
-        <drilldown>
-          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$click.value$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
-        </drilldown>
+        <option name="charting.chart">area</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Percent of Events</option>
       </chart>
     </panel>
     <panel>
-      <title>Transport (Click to drill down)</title>
+      <title>Transport Over Time</title>
       <chart>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | stats count by transport_norm | rename transport_norm as transport | sort - count</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | where isnotnull(transport_norm) AND transport_norm!="" | timechart span=5m count by transport_norm usenull=false useother=false | untable _time transport_norm count | eventstats sum(count) as total by _time | eval percent=round((count/total)*100,1) | fields - total | xyseries _time transport_norm percent</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
-        <option name="charting.chart">pie</option>
-        <drilldown>
-          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$direction$&form.transport=$click.value$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
-        </drilldown>
+        <option name="charting.chart">area</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Percent of Events</option>
       </chart>
     </panel>
   </row>
   <row>
     <panel>
-      <title>Top 10 Source IPs (Click to drill down)</title>
+      <title>New External Blocked Sources (Last 48h)</title>
+      <table>
+        <search>
+          <query>`pfsense_filterlog_base` | eval direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | search action_norm="blocked" | eval is_internal=if(cidrmatch("10.0.0.0/8", src_ip_norm) OR cidrmatch("172.16.0.0/12", src_ip_norm) OR cidrmatch("192.168.0.0/16", src_ip_norm) OR cidrmatch("127.0.0.0/8", src_ip_norm) OR cidrmatch("169.254.0.0/16", src_ip_norm) OR cidrmatch("::1/128", src_ip_norm) OR cidrmatch("fe80::/10", src_ip_norm) OR cidrmatch("fc00::/7", src_ip_norm) OR cidrmatch("ff00::/8", src_ip_norm), 1, 0) | where is_internal=0 AND isnotnull(src_ip_norm) AND src_ip_norm!="" | stats count as hits min(_time) as first_seen max(_time) as last_seen values(action_norm) as actions by src_ip_norm dest_port_norm | where isnotnull(dest_port_norm) AND dest_port_norm!="" | sort 0 src_ip_norm - hits | streamstats count as port_rank by src_ip_norm | where port_rank&lt;=6 | eval dest_port_sort=tonumber(dest_port_norm) | sort 0 src_ip_norm dest_port_sort | stats sum(hits) as hits min(first_seen) as first_seen max(last_seen) as last_seen values(actions) as actions list(dest_port_norm) as top_dest_ports by src_ip_norm | eval top_dest_ports=mvjoin(top_dest_ports, ",") | lookup pfsense_ip_seen src_ip_norm OUTPUT first_seen as first_seen_all last_seen as last_seen_all | eval first_seen_epoch=strptime(first_seen_all,"%F %T") | where isnotnull(first_seen_epoch) AND first_seen_epoch >= relative_time(now(), "-48h@h") AND hits>=10 | eval first_seen=first_seen_all, last_seen=last_seen_all, action=mvjoin(actions,",") | rename src_ip_norm as src_ip | sort - hits | fields src_ip first_seen last_seen hits action top_dest_ports</query>
+          <earliest>-48h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">5</option>
+      </table>
+    </panel>
+    <panel>
+      <title>New Internal Talkers (Last 48h)</title>
+      <table>
+        <search>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | eval is_internal=if(cidrmatch("10.0.0.0/8", src_ip_norm) OR cidrmatch("172.16.0.0/12", src_ip_norm) OR cidrmatch("192.168.0.0/16", src_ip_norm) OR cidrmatch("127.0.0.0/8", src_ip_norm) OR cidrmatch("169.254.0.0/16", src_ip_norm) OR cidrmatch("fc00::/7", src_ip_norm) OR cidrmatch("::1/128", src_ip_norm) OR cidrmatch("fe80::/10", src_ip_norm) OR cidrmatch("ff00::/8", src_ip_norm), 1, 0) | where is_internal=1 AND isnotnull(src_ip_norm) AND src_ip_norm!="" | where NOT cidrmatch("fe80::/10", src_ip_norm) AND NOT cidrmatch("ff00::/8", src_ip_norm) AND NOT cidrmatch("169.254.0.0/16", src_ip_norm) | stats count as hits min(_time) as first_seen max(_time) as last_seen values(action_norm) as actions values(src_tags) as src_tags values(src_display) as src_display by src_ip_norm dest_port_norm | where isnotnull(dest_port_norm) AND dest_port_norm!="" | sort 0 src_ip_norm - hits | streamstats count as port_rank by src_ip_norm | where port_rank&lt;=6 | eval dest_port_sort=tonumber(dest_port_norm) | sort 0 src_ip_norm dest_port_sort | stats sum(hits) as hits min(first_seen) as first_seen max(last_seen) as last_seen values(actions) as actions values(src_tags) as src_tags first(src_display) as src_display list(dest_port_norm) as top_dest_ports by src_ip_norm | eval top_dest_ports=mvjoin(top_dest_ports, ",") | lookup pfsense_ip_seen src_ip_norm OUTPUT first_seen as first_seen_all last_seen as last_seen_all | eval first_seen_epoch=strptime(first_seen_all,"%F %T") | where isnotnull(first_seen_epoch) AND first_seen_epoch >= relative_time(now(), "-48h@h") AND hits>=5 | eval first_seen=first_seen_all, last_seen=last_seen_all, action=mvjoin(actions,","), src_ip=coalesce(src_display, src_ip_norm) | sort - hits | fields src_ip first_seen last_seen hits action top_dest_ports src_tags</query>
+          <earliest>-48h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">5</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top Internal Talkers by Event (Click to drill down)</title>
       <chart>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | top limit=10 src_display | rename src_display as src_ip</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | eval is_internal=if(cidrmatch("10.0.0.0/8", src_ip_norm) OR cidrmatch("172.16.0.0/12", src_ip_norm) OR cidrmatch("192.168.0.0/16", src_ip_norm) OR cidrmatch("127.0.0.0/8", src_ip_norm) OR cidrmatch("169.254.0.0/16", src_ip_norm) OR cidrmatch("fc00::/7", src_ip_norm) OR cidrmatch("::1/128", src_ip_norm) OR cidrmatch("fe80::/10", src_ip_norm) OR cidrmatch("ff00::/8", src_ip_norm), 1, 0) | where is_internal=1 AND isnotnull(src_ip_norm) AND src_ip_norm!="" | where NOT cidrmatch("fe80::/10", src_ip_norm) AND NOT cidrmatch("ff00::/8", src_ip_norm) AND NOT cidrmatch("169.254.0.0/16", src_ip_norm) | top limit=10 src_display | rename src_display as src_ip</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
@@ -219,10 +281,10 @@
       </chart>
     </panel>
     <panel>
-      <title>Top 10 Destination IPs (Click to drill down)</title>
+      <title>Top Blocked Destination IPs (Click to drill down)</title>
       <chart>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | top limit=10 dest_display | rename dest_display as dest_ip</query>
+          <query>`pfsense_filterlog_base` | eval action_tok="blocked",              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | eval dest_is_internal=if(cidrmatch("10.0.0.0/8", dest_ip_norm) OR cidrmatch("172.16.0.0/12", dest_ip_norm) OR cidrmatch("192.168.0.0/16", dest_ip_norm) OR cidrmatch("127.0.0.0/8", dest_ip_norm) OR cidrmatch("169.254.0.0/16", dest_ip_norm) OR cidrmatch("::1/128", dest_ip_norm) OR cidrmatch("fe80::/10", dest_ip_norm) OR cidrmatch("fc00::/7", dest_ip_norm) OR cidrmatch("ff00::/8", dest_ip_norm), 1, 0) | where dest_is_internal=0 AND isnotnull(dest_ip_norm) AND dest_ip_norm!="" | top limit=10 dest_display | rename dest_display as dest_ip</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
@@ -237,10 +299,10 @@
   </row>
   <row>
     <panel>
-      <title>Top 10 Apps (Click to drill down)</title>
+      <title>Top 10 Apps (Total Events)</title>
       <chart>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | top limit=10 app_norm | rename app_norm as app</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | where isnotnull(app_norm) AND app_norm!="" | eval app_label=upper(app_norm), port_label=if(isnull(dest_port_norm) OR dest_port_norm="", "unknown", tostring(dest_port_norm)) | stats count as events by app_label port_label | sort 0 app_label - events | stats sum(events) as events first(port_label) as top_port by app_label | eval app_label=app_label." (".top_port.")" | sort - events | head 10</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
@@ -253,18 +315,19 @@
       </chart>
     </panel>
     <panel>
-      <title>Top 10 Destination Ports (Click to drill down)</title>
+      <title>Top 10 Apps (Blocked %)</title>
       <chart>
         <search>
-          <query>`pfsense_index` sourcetype=pfsense:filterlog | eval rule_origin_norm=coalesce(rule_origin,"unknown") | eval rule_origin_tok=if("$rule_origin$"="" OR "$rule_origin$"="*", "*", "$rule_origin$") | where rule_origin_tok="*" OR rule_origin_norm=rule_origin_tok | eval action_norm=lower(coalesce(action,vendor_action)),              direction_norm=lower(coalesce(direction,vendor_direction)),              transport_norm=lower(coalesce(transport,vendor_transport)),              src_ip_norm=coalesce(src_ip,src),              dest_ip_norm=coalesce(dest_ip,dest),              dest_port_norm=coalesce(dest_port,dport),              app_norm=lower(coalesce(app,application,app_proto)),              bytes_norm=coalesce(bytes, bytes_in),              src_host_norm=coalesce(src_host,""),              dest_host_norm=coalesce(dest_host,""),              src_display=coalesce(src_host, src_ip_norm),              dest_display=coalesce(dest_host, dest_ip_norm) | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok)) | top limit=10 dest_port_norm | rename dest_port_norm as dest_port</query>
+          <query>`pfsense_filterlog_base` | eval action_tok=if("$action$"="", "*", "$action$"),              direction_tok=if("$direction$"="", "*", "$direction$"),              transport_tok=if("$transport$"="", "*", "$transport$"),              src_ip_tok=if("$src_ip$"="", "*", "$src_ip$"),              dest_ip_tok=if("$dest_ip$"="", "*", "$dest_ip$"),              app_tok=if("$app$"="", "*", "$app$"),              dest_port_tok=if("$dest_port$"="", "*", "$dest_port$") | where (action_tok="*" OR action_norm=lower(action_tok))     AND (direction_tok="*" OR direction_norm=lower(direction_tok))     AND (transport_tok="*" OR transport_norm=lower(transport_tok))     AND (src_ip_tok="*" OR src_ip_norm=src_ip_tok OR src_host_norm=src_ip_tok)     AND (dest_ip_tok="*" OR dest_ip_norm=dest_ip_tok OR dest_host_norm=dest_ip_tok)     AND (app_tok="*" OR app_norm=lower(app_tok))     AND (dest_port_tok="*" OR tostring(dest_port_norm)=tostring(dest_port_tok)) | eval dest_is_internal=if(cidrmatch("10.0.0.0/8", dest_ip_norm) OR cidrmatch("172.16.0.0/12", dest_ip_norm) OR cidrmatch("192.168.0.0/16", dest_ip_norm) OR cidrmatch("127.0.0.0/8", dest_ip_norm) OR cidrmatch("169.254.0.0/16", dest_ip_norm) OR cidrmatch("::1/128", dest_ip_norm) OR cidrmatch("fe80::/10", dest_ip_norm) OR cidrmatch("fc00::/7", dest_ip_norm) OR cidrmatch("ff00::/8", dest_ip_norm), 1, 0) | where dest_is_internal=0 AND isnotnull(dest_ip_norm) AND dest_ip_norm!="" | where isnotnull(app_norm) AND app_norm!="" | eval app_label=upper(app_norm) | stats count as total count(eval(action_norm="blocked")) as blocked by app_label | eval blocked_pct=round((blocked/total)*100,1) | sort - blocked_pct - total | head 10</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
         <option name="charting.chart">bar</option>
-        <option name="charting.axisTitleX.text">Port Number</option>
-        <option name="charting.axisTitleY.text">Count</option>
+        <option name="charting.axisTitleX.text">Application / Service</option>
+        <option name="charting.axisTitleY.text">Blocked %</option>
+        <option name="charting.chart.nullValueMode">zero</option>
         <drilldown>
-          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=$action$&form.direction=$direction$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$app$&form.dest_port=$click.value$&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
+          <link target="_self"><![CDATA[/app/pfsense-dashboards/pfsense_detail?form.action=blocked&form.direction=$direction$&form.transport=$transport$&form.src_ip=$src_ip$&form.dest_ip=$dest_ip$&form.app=$click.value$&form.dest_port=*&form.time.earliest=$time.earliest$&form.time.latest=$time.latest$&form.rule_origin=$rule_origin$]]></link>
         </drilldown>
       </chart>
     </panel>
