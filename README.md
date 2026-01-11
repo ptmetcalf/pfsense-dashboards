@@ -41,32 +41,34 @@ definition = index=your_pfsense_index
 ### Lookup Enrichment (Optional)
 
 The dashboards can be enriched with optional pfSense lookups (rules, interfaces,
-DNS hosts). See the TA-pfsense Plus README for the scripts and setup details:
-https://github.com/ptmetcalf/ta-pfsense-plus/blob/main/README.md
+DNS hosts). The supported pattern is to copy the generated CSVs into the TA app
+lookups directory so the dashboards can resolve them.
 
-Recommended (clean separation):
-1. Create a small local app, e.g. `$SPLUNK_HOME/etc/apps/pfsense-local/`
-2. Put CSVs in `$SPLUNK_HOME/etc/apps/pfsense-local/lookups/`
-3. Add `local/lookup_table_files.conf` in that app with the same lookup names:
-```
-[pfsense_filter_rule_map]
-filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_filter_rule_map.csv
+1. Generate the CSVs using `ta-pfsense-plus/tools/pfsense-lookups.py`.
+2. Copy the CSVs into `$SPLUNK_HOME/etc/apps/ta-pfsense-plus/lookups/`.
+3. Restart or reload Splunk.
 
-[pfsense_interface_map]
-filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_interface_map.csv
-
-[pfsense_dns_hosts]
-filename = $SPLUNK_HOME/etc/apps/pfsense-local/lookups/pfsense_dns_hosts.csv
-```
-
-Simple setups can also override directly in:
-`$SPLUNK_HOME/etc/apps/pfsense-dashboards/local/lookup_table_files.conf`
-using the same lookup names. Splunk will prefer local overrides over defaults.
-
-Optional interface/zone/gateway/port enrichment lookups live in the TA app. See
+Optional interface/zone/gateway enrichment lookups live in the TA app. See
 `docs/panels.md` and use
 `$SPLUNK_HOME/etc/apps/ta-pfsense-plus/tools/pfsense-lookups.py enrichment`
 to generate instance-specific CSVs from a pfSense `config.xml` dump.
+
+### Summary Lookups (Auto-populated)
+
+Several panels use summary lookups that are populated by scheduled searches in
+this app. These run hourly, so after install allow at least an hour or run them
+manually via **Settings > Searches, Reports, and Alerts**. When running ad-hoc,
+use the lookup name (for example `outputlookup pfsense_ip_seen`) to ensure the
+CSV writes into this app:
+
+* pfSense - Baseline Block Rate (7d)
+* pfSense - Baseline Unique Sources Per Hour (7d)
+* pfSense - IP Seen (First/Last)
+* pfSense - Known DNSBL Domains (Prev 7d, Exclude Last 24h)
+* pfSense - Known IP Block Destinations (Prev 7d, Exclude Last 24h)
+
+The IP-seen job scans the full time range (`dispatch.earliest_time = 0`), so on
+large datasets it may take longer to populate.
 
 ## Dashboards
 

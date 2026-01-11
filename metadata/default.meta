@@ -29,3 +29,13 @@ export = system
 [macros/pfsense_token_filter]
 access = read : [ * ], write : [ admin, sc_admin ]
 export = system
+
+[macros/pfsense_filterlog_base]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system
+
+[transforms]
+export = system
+
+[lookups]
+export = system
