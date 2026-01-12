@@ -14,6 +14,13 @@
 * reduce result counts for external blocked sources and internal talkers to improve performance
 * remove deprecated insights dashboard assets
 
+## [1.1.0](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.1...v1.1.0) (2026-01-12)
+
+
+### Miscellaneous Chores
+
+* release-as 1.1.0 ([5dc2b00](https://github.com/ptmetcalf/pfsense-dashboards/commit/5dc2b0080fa29d13f5c410ee24f87ee3e7d06e32))
+
 ## [1.0.1](https://github.com/ptmetcalf/pfsense-dashboards/compare/v1.0.0...v1.0.1) (2026-01-04)
 
 
