@@ -100,21 +100,24 @@ See `CONTRIBUTING.md` for AppInspect and packaging steps.
 ## Screenshots
 
 Main overview dashboard with filters and statistics.
-![pfSense Overview](appserver/static/screenshots/01-pfsense-overview.png)
+![pfSense Overview](appserver/static/screenshots/01-pfsense-overview.jpeg)
 
 Detailed event view with full field visibility.
-![pfSense Detail](appserver/static/screenshots/02-pfsense-detail.png)
+![pfSense Detail](appserver/static/screenshots/02-pfsense-detail.jpeg)
 
 DNSBL blocked domains analysis.
-![pfSense DNSBL](appserver/static/screenshots/03-pfsense-dnsbl.png)
+![pfSense DNSBL](appserver/static/screenshots/03-pfsense-dnsbl.jpeg)
+
+Suricata alerts and signatures view.
+![pfSense Suricata](appserver/static/screenshots/04-pfsense-suricata.jpeg)
 
 pfBlockerNG IP block events.
-![pfSense IP Log](appserver/static/screenshots/04-pfsense-iplog.png)
+![pfSense IP Log](appserver/static/screenshots/05-pfsense-iplog.jpeg)
 
 Statistical trends and insights.
 
 Host-centric investigation view.
-![pfSense Host Investigator](appserver/static/screenshots/06-pfsense-host-investigator.png)
+![pfSense Host Investigator](appserver/static/screenshots/06-pfsense-host-investigator.jpeg)
 
 All sensitive data (IPs, hostnames, domains) has been sanitized for public distribution.
 
